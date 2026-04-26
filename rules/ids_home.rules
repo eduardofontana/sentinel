@@ -1,0 +1,32 @@
+#
+# SentinelFW - Home PC profile rules
+# Focus: workstation exposure (RDP/SMB/WinRM/SSH), brute-force surfaces,
+# suspicious command execution markers and outbound tunneling hints.
+#
+
+# Exposed remote access surfaces
+alert tcp any any -> any 3389 (msg:"RDP connection attempt"; sid:1100001; rev:1; classtype:attempted-admin;)
+alert tcp any any -> any 22 (msg:"SSH connection attempt"; sid:1100002; rev:1; classtype:attempted-admin;)
+alert tcp any any -> any 23 (msg:"Telnet connection attempt"; sid:1100003; rev:1; classtype:attempted-admin;)
+alert tcp any any -> any 5985 (msg:"WinRM HTTP access attempt"; sid:1100004; rev:1; classtype:attempted-admin;)
+alert tcp any any -> any 5986 (msg:"WinRM HTTPS access attempt"; sid:1100005; rev:1; classtype:attempted-admin;)
+
+# Lateral movement / file sharing surfaces
+alert tcp any any -> any 445 (msg:"SMB access attempt"; sid:1100010; rev:1; classtype:attempted-recon;)
+alert tcp any any -> any 139 (msg:"NetBIOS session attempt"; sid:1100011; rev:1; classtype:attempted-recon;)
+alert udp any any -> any 137 (msg:"NetBIOS name service query"; sid:1100012; rev:1; classtype:attempted-recon;)
+alert udp any any -> any 138 (msg:"NetBIOS datagram traffic"; sid:1100013; rev:1; classtype:attempted-recon;)
+
+# Suspicious payload markers (host-focused)
+alert tcp any any -> any any (msg:"Possible encoded PowerShell command"; content:"powershell -enc"; nocase; sid:1100020; rev:1; classtype:attempted-admin;)
+alert tcp any any -> any any (msg:"Possible certutil download behavior"; content:"certutil -urlcache -f"; nocase; sid:1100021; rev:1; classtype:attempted-admin;)
+alert tcp any any -> any any (msg:"Possible mshta remote execution"; content:"mshta http"; nocase; sid:1100022; rev:1; classtype:attempted-admin;)
+alert tcp any any -> any any (msg:"Possible rundll32 script execution"; content:"rundll32 javascript:"; nocase; sid:1100023; rev:1; classtype:attempted-admin;)
+alert tcp any any -> any any (msg:"Possible Mimikatz keyword in traffic"; content:"mimikatz"; nocase; sid:1100024; rev:1; classtype:attempted-admin;)
+
+# DNS tunneling / beaconing hints
+alert udp any any -> any 53 (msg:"Possible long DNS query burst marker"; content:"AAAAAAAAAAAA"; sid:1100030; rev:1; classtype:bad-unknown;)
+
+# Useful low-noise telemetry
+log tcp any any -> any 3389 (msg:"RDP traffic log"; sid:1100100; rev:1;)
+log tcp any any -> any 445 (msg:"SMB traffic log"; sid:1100101; rev:1;)

@@ -1,6 +1,6 @@
 from datetime import datetime
 import time
-from typing import Callable, Optional, List, Any
+from typing import Callable, Optional
 from scapy.all import AsyncSniffer, Packet as ScapyPacket, IP, TCP, UDP, ICMP, Raw
 from core.packet_model import PacketInfo, Action
 from core.firewall import FirewallEngine
@@ -93,6 +93,7 @@ class PacketSniffer:
             return
 
         packet_info = self._parse_packet(pkt)
+        alerts = []
         self.stats["packets_captured"] += 1
 
         if self.firewall:
@@ -116,7 +117,10 @@ class PacketSniffer:
         self.logger.log_packet(packet_info, "allowed")
 
         if self.callback:
-            self.callback(packet_info)
+            try:
+                self.callback(packet_info, alerts if self.ids_engine else [])
+            except TypeError:
+                self.callback(packet_info)
 
     def _parse_packet(self, pkt: ScapyPacket) -> PacketInfo:
         ip_layer = pkt.getlayer(IP)

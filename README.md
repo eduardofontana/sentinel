@@ -1,6 +1,6 @@
 ﻿# SentinelFW
 
-## Firewall Doméstico + Sistema de Detecção de Intrusão
+## Firewall Domestico + Sistema de Deteccao de Intrusao
 
 ```text
 ███████╗███████╗███╗ ██╗████████╗██╗███╗ ██╗███████╗██╗
@@ -13,223 +13,139 @@
     Home Firewall + Intrusion Detection
 ```
 
-## Introdução
+Repositorio oficial do app:
+- https://github.com/eduardofontana/sentinel
 
-Bem-vindo ao **SentinelFW**, uma ferramenta profissional de firewall doméstico e sistema de detecção de intrusão (IDS) inspirada em engines como Snort.
+## Visao Geral
 
-Este projeto foi desenvolvido para:
-- Captura e análise de pacotes de rede local
-- Aplicação de regras de firewall (allow/deny)
-- Detecção de ameaças baseada em regras estilo Snort
-- Geração de alertas e logs de eventos
-- Relatórios detalhados em JSON/HTML
-- Detecção de comportamentos suspeitos (port scan, brute force, DoS)
+SentinelFW combina:
+- captura de pacotes com Scapy
+- firewall baseado em regras YAML
+- IDS estilo Snort
+- detectores de comportamento (port scan, brute force, DoS, payload suspeito)
+- dashboard web em tempo real (FastAPI + WebSocket)
+- persistencia local em SQLite para relatorios
 
 ## Arquitetura
 
-```
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃                        ⚡ SentinelFW ⚡                         ┃
-┃              Next-Gen CLI Firewall & IDS Framework              ┃
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                                                 ┃
-┃   ┌──────────────┐   ┌──────────────┐   ┌────────────────────┐  ┃
-┃   │    CLI UI    │   │   Sniffer    │   │     IDS Engine     │  ┃
-┃   │    (Rich)    │   │   (Scapy)    │   │   (Snort Rules)    │  ┃
-┃   └──────┬───────┘   └──────┬───────┘   └────────┬───────────┘  ┃
-┃          │                  │                    │              ┃
-┣━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━┫
-┃                        🔍 Detection Layer                       ┃
-┃                                                                 ┃
-┃   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐        ┃
-┃   │  Port Scan   │   │ Brute Force  │   │     DoS      │        ┃
-┃   │   Detector   │   │   Detector   │   │   Detector   │        ┃
-┃   └──────┬───────┘   └──────┬───────┘   └──────┬───────┘        ┃
-┃          │                  │                  │                ┃
-┃          └───────────┬──────┴──────┬───────────┘                ┃
-┃                      │             │                            ┃
-┃           ┌──────────────┐   ┌──────────────────────┐           ┃
-┃           │  Suspicious  │   │  Payload Analyzer    │           ┃
-┃           │   Activity   │   │ (Deep Inspection)    │           ┃
-┃           └──────────────┘   └──────────────────────┘           ┃
-┃                                                                 ┃
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                                                 ┃
-┃   ┌──────────────┐         ┌────────────────────────────────┐   ┃
-┃   │  Firewall    │         │      Logger & Reporter         │   ┃
-┃   │   Engine     │         │   (Logs • Alerts • Reports)    │   ┃
-┃   └──────────────┘         └────────────────────────────────┘   ┃
-┃                                                                 ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+```text
+CLI (Typer/Rich)
+  -> PacketSniffer (Scapy AsyncSniffer)
+    -> FirewallEngine
+    -> IDSEngine (Snort-like rules)
+    -> Detectores (PortScan, BruteForce, DoS, SuspiciousPayload)
+    -> Logger/StateStore (SQLite)
+    -> DashboardClient (HTTP -> dashboard.py)
 ```
 
-## Características
+## Requisitos
 
-### Motor de Firewall
-- Regras em formato YAML
-- Suporte a protocolos: TCP, UDP, ICMP, any
-- Filtro por IP de origem/destino e porta
-- Política padrão configurável (allow/deny)
-- Estatísticas em tempo real
+- Python 3.10+
+- Dependencias de `requirements.txt`
+- Windows: Npcap/WinPcap compativel para captura de pacotes
 
-### Motor IDS (Estilo Snort)
-- Parser de regras no formato Snort
-- Suporte a opções: `msg`, `content`, `nocase`, `sid`, `rev`, `classtype`
-- Detecção de content em payloads
-- Matching case-sensitive/insensitive
-- Níveis de severidade
-
-### Detectores
-- **Port Scan**: Detecta varredura de portas
-- **Brute Force**: Detecta tentativas repetidas
-- **DoS**: Detecta flood de pacotes
-- **Suspicious Payload**: Detecta padrões maliciosos
-
-### Relatórios
-- Relatórios em JSON
-- Relatórios em HTML
-- Estatísticas completas
-- Timeline de eventos
-
-## Instalação
+## Instalacao
 
 ```bash
-# Clone o repositório
 git clone https://github.com/eduardofontana/sentinel.git
-cd sentinelfw
-
-# Crie um ambiente virtual (opcional)
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# ou
-venv\Scripts\activate  # Windows
-
-# Instale as dependências
+cd sentinel
+python -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
-
-# Linux: pode precisar de privilégios de root para captura de pacotes
-sudo setcap cap_net_raw,cap_net_admin=eip $(which python)
 ```
 
-## Configuração
+## Configuracao
 
-Edite `config/settings.yaml` para ajustar as configurações:
+Arquivo: `config/settings.yaml`
 
-```yaml
-interface: "eth0"
-default_policy: "allow"
-log_level: "INFO"
-packet_limit: 0
+Pontos principais:
+- `interface`: interface de captura
+- `ids.rules_file`: regras IDS (padrao `rules/ids_home.rules`)
+- `dashboard.url`: endpoint do dashboard
+- `detectors.suspicious_payload.profile`: `home`, `web` ou `mixed`
 
-detectors:
-  port_scan:
-    enabled: true
-    time_window_seconds: 10
-    unique_ports_threshold: 20
-  # ...
-```
+## Comandos Principais
 
-## Uso
-
-### Monitorar Rede
+### Monitor em foreground
 
 ```bash
-python run.py monitor --interface eth0
-python run.py monitor --interface wlan0 --rules rules/ids.rules
-python run.py monitor --interface eth0 --stop-after 100
+python run.py monitor --interface "\\Device\\NPF_{SEU_GUID}"
 ```
 
-### Testar Regras
+### Dashboard com monitor automatico
 
 ```bash
-python run.py test-rules --rules rules/ids.rules
+python run.py start-dashboard --host 127.0.0.1 --port 8000 --auto-monitor --monitor-interface "\\Device\\NPF_{SEU_GUID}" --no-monitor-interactive
 ```
 
-### Listar Regras
+Link:
+- http://127.0.0.1:8000
+
+### Monitor em background
 
 ```bash
-python run.py show-rules --firewall
-python run.py show-rules --ids
+python run.py start-monitor-bg --interface "\\Device\\NPF_{SEU_GUID}" --no-interactive
+python run.py monitor-bg-status
+python run.py stop-monitor-bg
+```
+
+### Simulacao rapida de trafego/ataque controlado
+
+```bash
+python run.py demo-attack --target 192.168.1.1
+```
+
+### Utilitarios
+
+```bash
+python run.py test-rules --rules rules/ids_home.rules
 python run.py show-rules --firewall --ids
-```
-
-### Gerar Relatório
-
-```bash
-python run.py report --format json
 python run.py report --format html
-```
-
-### Ver Status
-
-```bash
 python run.py status
 ```
 
-## Exemplos de Regras
+## Troubleshooting
 
-### Regras de Firewall (YAML)
+### `ERR_CONNECTION_REFUSED` no dashboard
 
-```yaml
-rules:
-  - id: fw_1
-    action: deny
-    protocol: tcp
-    source_ip: any
-    source_port: any
-    destination_ip: any
-    destination_port: 23
-    description: "Block Telnet"
-    enabled: true
+1. Confirme se o processo subiu:
+```bash
+python run.py monitor-bg-status
+```
+2. Suba dashboard novamente em foreground e mantenha o terminal aberto:
+```bash
+python run.py start-dashboard --host 127.0.0.1 --port 8000 --auto-monitor
+```
+3. Teste API:
+```bash
+curl http://127.0.0.1:8000/api/stats
 ```
 
-### Regras IDS (Formato Snort)
+### Alias `python` quebrado no Windows
 
+Se o alias do WindowsApps falhar, execute com caminho completo:
+
+```powershell
+& "C:\Users\duhbolado\AppData\Local\Python\pythoncore-3.14-64\python.exe" run.py start-dashboard --host 127.0.0.1 --port 8000 --auto-monitor
 ```
-alert tcp any any -> any 80 (msg:"Possible HTTP SQL Injection"; content:"' OR '1'='1"; sid:1000001; rev:1;)
-alert tcp any any -> any 80 (msg:"HTTP Path Traversal"; content:"../"; sid:1000004; rev:1;)
-alert tcp any any -> any 80 (msg:"HTTP XSS Script Tag"; content:"<script>"; nocase; sid:1000006; rev:1;)
+
+## Testes
+
+```bash
+python -m pytest tests/test_brute_force_detector.py -q
+python -m pytest tests/test_suspicious_payload_detector.py -q
 ```
-
-## Roadmap
-
-- [x] Capture de pacotes com Scapy
-- [x] Motor de firewall básico
-- [x] Parser de regras IDS
-- [x] Detectores de anomalias
-- [x] Logging estruturado
-- [x] Relatórios JSON/HTML
-- [ ] Interface gráfica (TBD)
-- [ ] Suporte a mais protocolos
-- [ ] Integração com bancos de dados
-- [ ] Alertas em tempo real (TBD)
 
 ## Aviso Legal
 
-**IMPORTANTE**: Esta ferramenta é destinada exclusivamente para:
+Uso exclusivo para:
+- aprendizado
+- laboratorio proprio/autorizado
+- defesa de rede domestica
 
-- Fins educativos e de aprendizado
-- Uso em laboratórios de segurança
-- Testes autorizados em redes próprias
-- Proteção de redes domésticas
+Nao use para atividades ofensivas ou sem autorizacao.
 
-**PROIBIDO**:
-- Uso em redes sem autorização
-- Violação de privacidade de outros
-- Ataques offensivos
-- Atividades ilegais
+## Autor
 
-O usuário é o único responsável pelo uso adequado desta ferramenta.
-Não nos responsabilizamos por qualquer uso indevido ou ilegal.
-
----
-
-**Autor**: Eduardo Fontana — Web Developer & Pentester
-
-**GitHub**: [github.com/eduardofontana/sentinel](https://github.com/eduardofontana/sentinel)
-
-Licença MIT - Sinta-se livre para usar e contribuir!
-
-
-
-
+Eduardo Fontana
+- https://github.com/eduardofontana

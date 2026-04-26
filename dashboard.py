@@ -1,10 +1,10 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
 from typing import List, Dict, Any
 import json
 from datetime import datetime
 from pathlib import Path
+from core.state_store import SQLiteMonitoringStore
 
 app = FastAPI(title="SentinelFW Dashboard", version="1.0.0")
 
@@ -23,6 +23,62 @@ stats_data = {
 }
 
 alerts_data: List[Dict[str, Any]] = []
+
+
+def _hydrate_from_state_store() -> None:
+    db_path = Path("logs/sentinelfw.db")
+    if not db_path.exists():
+        return
+
+    store = None
+    try:
+        store = SQLiteMonitoringStore(str(db_path))
+        summary = store.fetch_summary(timeline_limit=200)
+
+        stats_data.update(
+            {
+                "packets_captured": int(summary.get("total_packets", 0)),
+                "alerts_generated": int(summary.get("total_alerts", 0)),
+                "firewall_allowed": int(summary.get("firewall", {}).get("allowed", 0)),
+                "firewall_denied": int(summary.get("firewall", {}).get("denied", 0)),
+                "top_sources": summary.get("top_source_ips", []),
+                "top_dest_ports": summary.get("top_destination_ports", []),
+                "alerts_by_severity": {
+                    "low": int(summary.get("alerts_by_severity", {}).get("low", 0)),
+                    "medium": int(summary.get("alerts_by_severity", {}).get("medium", 0)),
+                    "high": int(summary.get("alerts_by_severity", {}).get("high", 0)),
+                    "critical": int(summary.get("alerts_by_severity", {}).get("critical", 0)),
+                },
+            }
+        )
+
+        timeline = summary.get("timeline", [])
+        if timeline:
+            alerts_data.clear()
+            for item in timeline:
+                alerts_data.append(
+                    {
+                        "timestamp": item.get("timestamp", datetime.now().isoformat()),
+                        "severity": item.get("severity", "low"),
+                        "source_ip": item.get("source_ip", ""),
+                        "source_port": 0,
+                        "destination_ip": "",
+                        "destination_port": 0,
+                        "protocol": "",
+                        "message": item.get("message", ""),
+                        "rule_sid": 0,
+                        "rule_msg": "",
+                    }
+                )
+    except Exception:
+        # Fallback is best effort only; dashboard must continue serving.
+        return
+    finally:
+        if store:
+            store.close()
+
+
+_hydrate_from_state_store()
 
 
 @app.get("/")
@@ -119,6 +175,7 @@ async def get_dashboard():
 
     <script>
         const ws = new WebSocket(`ws://${location.host}/ws`);
+        let latestAlerts = [];
 
         ws.onmessage = function(event) {
             const data = JSON.parse(event.data);
@@ -132,6 +189,41 @@ async def get_dashboard():
         ws.onclose = function() {
             setTimeout(() => window.location.reload(), 3000);
         };
+
+        async function loadInitialData() {
+            try {
+                const [statsResp, alertsResp] = await Promise.all([
+                    fetch('/api/stats'),
+                    fetch('/api/alerts?limit=20')
+                ]);
+                const stats = await statsResp.json();
+                const alerts = await alertsResp.json();
+                latestAlerts = Array.isArray(alerts) ? alerts : (alerts.value || []);
+                updateDashboard({
+                    type: 'stats',
+                    stats: stats,
+                    recent_alerts: latestAlerts,
+                    top_sources: stats.top_sources || []
+                });
+            } catch (e) {
+                // Keep UI responsive even if bootstrap fetch fails.
+            }
+        }
+
+        async function pollFallback() {
+            try {
+                const statsResp = await fetch('/api/stats');
+                const stats = await statsResp.json();
+                updateDashboard({
+                    type: 'stats',
+                    stats: stats,
+                    recent_alerts: latestAlerts,
+                    top_sources: stats.top_sources || []
+                });
+            } catch (e) {
+                // Ignore transient polling failures.
+            }
+        }
 
         function updateDashboard(data) {
             document.getElementById('packets').textContent = data.stats.packets_captured || 0;
@@ -154,6 +246,7 @@ async def get_dashboard():
 
             const alertsList = document.getElementById('alerts-list');
             if (data.recent_alerts && data.recent_alerts.length > 0) {
+                latestAlerts = data.recent_alerts;
                 alertsList.innerHTML = data.recent_alerts.slice(0, 20).map(alert => `
                     <div class="bg-gray-700 rounded p-3 flex justify-between items-center">
                         <div>
@@ -194,12 +287,16 @@ async def get_dashboard():
             } else {
                 alertsList.innerHTML = entry + alertsList.innerHTML;
             }
+            latestAlerts = [alert, ...latestAlerts].slice(0, 20);
         }
 
         function getSeverityColor(severity) {
             const colors = {low: 'green', medium: 'yellow', high: 'red', critical: 'purple'};
             return colors[severity] || 'gray';
         }
+
+        loadInitialData();
+        setInterval(pollFallback, 3000);
     </script>
 </body>
 </html>"""

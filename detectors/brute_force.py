@@ -63,9 +63,9 @@ class BruteForceDetector:
             ]
 
             if not self.attempts_tracker[source_ip][dest_port]:
-                self.attempts_tracker[source_ip][dest_port].pop(dest_port, None)
+                self.attempts_tracker[source_ip].pop(dest_port, None)
 
-        if not self.attempts_tracker[source_ip]:
+        if source_ip in self.attempts_tracker and not self.attempts_tracker[source_ip]:
             self.attempts_tracker.pop(source_ip, None)
 
     def get_alerts(self) -> List[Alert]:

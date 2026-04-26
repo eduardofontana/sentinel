@@ -10,12 +10,19 @@ detectors:
     time_window_seconds: 5
   port_scan:
     enabled: true
+  suspicious_payload:
+    enabled: true
+    profile: home
+dashboard:
+  enabled: true
+  stats_interval_seconds: 1.0
+  url: http://127.0.0.1:8000
 firewall:
   enabled: true
   rules_file: config/firewall_rules.yaml
 ids:
   enabled: true
-  rules_file: rules/ids.rules
+  rules_file: rules/ids_home.rules
 interface: eth0
 log_level: INFO
 packet_limit: 0
