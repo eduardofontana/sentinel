@@ -1,88 +1,100 @@
-# SentinelFW
+﻿# SentinelFW
 
-## Firewall Doméstico + Sistema de Detecção de Intrusão
+## Firewall DomÃ©stico + Sistema de DetecÃ§Ã£o de IntrusÃ£o
 
 ```
-███████╗███████╗███╗   ██╗████████╗██╗███╗   ██╗███████╗██╗
-██╔════╝██╔════╝████╗  ██║╚══██╔══╝██║████╗  ██║██╔════╝██║
-███████╗█████╗  ██╔██╗ ██║   ██║   ██║██╔██╗ ██║█████╗  ██║
-╚════██║██╔══╝  ██║╚██╗██║   ██║   ██║██║╚██╗██║██╔══╝  ██║
-███████║███████╗██║ ╚████║   ██║   ██║██║ ╚████║███████╗███████╗
-╚══════╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝╚═╝  ╚═══╝╚══════╝╚══════╝
+â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—â–ˆâ–ˆâ–ˆâ•—   â–ˆâ–ˆâ•—â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—â–ˆâ–ˆâ•—â–ˆâ–ˆâ–ˆâ•—   â–ˆâ–ˆâ•—â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—â–ˆâ–ˆâ•—
+â–ˆâ–ˆâ•”â•â•â•â•â•â–ˆâ–ˆâ•”â•â•â•â•â•â–ˆâ–ˆâ–ˆâ–ˆâ•—  â–ˆâ–ˆâ•‘â•šâ•â•â–ˆâ–ˆâ•”â•â•â•â–ˆâ–ˆâ•‘â–ˆâ–ˆâ–ˆâ–ˆâ•—  â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•”â•â•â•â•â•â–ˆâ–ˆâ•‘
+â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—  â–ˆâ–ˆâ•”â–ˆâ–ˆâ•— â–ˆâ–ˆâ•‘   â–ˆâ–ˆâ•‘   â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•”â–ˆâ–ˆâ•— â–ˆâ–ˆâ•‘â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—  â–ˆâ–ˆâ•‘
+â•šâ•â•â•â•â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•”â•â•â•  â–ˆâ–ˆâ•‘â•šâ–ˆâ–ˆâ•—â–ˆâ–ˆâ•‘   â–ˆâ–ˆâ•‘   â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘â•šâ–ˆâ–ˆâ•—â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•”â•â•â•  â–ˆâ–ˆâ•‘
+â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•‘â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—â–ˆâ–ˆâ•‘ â•šâ–ˆâ–ˆâ–ˆâ–ˆâ•‘   â–ˆâ–ˆâ•‘   â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘ â•šâ–ˆâ–ˆâ–ˆâ–ˆâ•‘â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—
+â•šâ•â•â•â•â•â•â•â•šâ•â•â•â•â•â•â•â•šâ•â•  â•šâ•â•â•â•   â•šâ•â•   â•šâ•â•â•šâ•â•  â•šâ•â•â•â•â•šâ•â•â•â•â•â•â•â•šâ•â•â•â•â•â•â•
 
     Home Firewall + Intrusion Detection
 ```
 
-## Introdução
+## IntroduÃ§Ã£o
 
-Bem-vindo ao **SentinelFW**, uma ferramenta profissional de firewall doméstico e sistema de detecção de intrusão (IDS) inspirada em engines como Snort.
+Bem-vindo ao **SentinelFW**, uma ferramenta profissional de firewall domÃ©stico e sistema de detecÃ§Ã£o de intrusÃ£o (IDS) inspirada em engines como Snort.
 
 Este projeto foi desenvolvido para:
-- Captura e análise de pacotes de rede local
-- Aplicação de regras de firewall (allow/deny)
-- Detecção de ameaçasbaseada em regras estilo Snort
-- Geração de alertas e logs de eventos
-- Relatórios detalhados em JSON/HTML
-- Detecção de comportamentos suspeitos (port scan, brute force, DoS)
+- Captura e anÃ¡lise de pacotes de rede local
+- AplicaÃ§Ã£o de regras de firewall (allow/deny)
+- DetecÃ§Ã£o de ameaÃ§asbaseada em regras estilo Snort
+- GeraÃ§Ã£o de alertas e logs de eventos
+- RelatÃ³rios detalhados em JSON/HTML
+- DetecÃ§Ã£o de comportamentos suspeitos (port scan, brute force, DoS)
 
 ## Arquitetura
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         SentinelFW                               │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐     │
-│  │   CLI      │  │   Sniffer   │  │ IDS Engine        │     │
-│  │   (Rich)   │  │  (Scapy)   │  │  (Regras Snort)  │     │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘     │
-│         │                │                  │                  │
-│  ┌──────────────────────────────────────────────────────────────┤
-│  │                    Detectores                               ││
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────┐ ││
-│  │  │Port Scan │ │BruteForce│ │   DoS    │ │Suspicious      │ ││
-│  │  │Detector │ │Detector  │ │Detector │ │PayloadDetector│ ││
-│  │  └──────────┘ └──────────┘ └──────────┘ └────────────────┘ ││
-│  └──────────────────────────────────────────────────────────────┤
-│         │                │                  │                  │
-│  ┌─��───────────┐  ┌─────────────────────────────────────────────┐│
-│  │  Firewall  │  │           Logger/Reporter                    ││
-│  │  Engine   │  │         (Logs + Reports)                    ││
-│  └─────────────┘  └─────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────────┘
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                        ⚡ SentinelFW ⚡                         ┃
+┃              Next-Gen CLI Firewall & IDS Framework              ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃                                                                 ┃
+┃   ┌──────────────┐   ┌──────────────┐   ┌────────────────────┐  ┃
+┃   │    CLI UI    │   │   Sniffer    │   │     IDS Engine     │  ┃
+┃   │    (Rich)    │   │   (Scapy)    │   │   (Snort Rules)    │  ┃
+┃   └──────┬───────┘   └──────┬───────┘   └────────┬───────────┘  ┃
+┃          │                  │                    │              ┃
+┣━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━┫
+┃                        🔍 Detection Layer                       ┃
+┃                                                                 ┃
+┃   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐        ┃
+┃   │  Port Scan   │   │ Brute Force  │   │     DoS      │        ┃
+┃   │   Detector   │   │   Detector   │   │   Detector   │        ┃
+┃   └──────┬───────┘   └──────┬───────┘   └──────┬───────┘        ┃
+┃          │                  │                  │                ┃
+┃          └───────────┬──────┴──────┬───────────┘                ┃
+┃                      │             │                            ┃
+┃           ┌──────────────┐   ┌──────────────────────┐           ┃
+┃           │  Suspicious  │   │  Payload Analyzer    │           ┃
+┃           │   Activity   │   │ (Deep Inspection)    │           ┃
+┃           └──────────────┘   └──────────────────────┘           ┃
+┃                                                                 ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃                                                                 ┃
+┃   ┌──────────────┐         ┌────────────────────────────────┐   ┃
+┃   │  Firewall    │         │      Logger & Reporter         │   ┃
+┃   │   Engine     │         │   (Logs • Alerts • Reports)    │   ┃
+┃   └──────────────┘         └────────────────────────────────┘   ┃
+┃                                                                 ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 ```
 
-## Características
+## CaracterÃ­sticas
 
 ### Motor de Firewall
 - Regras em formato YAML
 - Suporte a protocolos: TCP, UDP, ICMP, any
--过滤 por IP de origem/destino, porta
-- Política padrão configurável (allow/deny)
-- Estatísticas em tempo real
+-è¿‡æ»¤ por IP de origem/destino, porta
+- PolÃ­tica padrÃ£o configurÃ¡vel (allow/deny)
+- EstatÃ­sticas em tempo real
 
 ### Motor IDS (Estilo Snort)
 - Parser de regras no formato Snort
-- Suporte a opções: `msg`, `content`, `nocase`, `sid`, `rev`, `classtype`
-- Detecção de content em payloads
+- Suporte a opÃ§Ãµes: `msg`, `content`, `nocase`, `sid`, `rev`, `classtype`
+- DetecÃ§Ã£o de content em payloads
 - Matching case-sensitive/insensitive
-- Níveis de severidade
+- NÃ­veis de severidade
 
 ### Detectores
 - **Port Scan**: Detecta varredura de portas
 - **Brute Force**: Detecta tentativas repetidas
 - **DoS**: Detecta flood de pacotes
-- **Suspicious Payload**: Detecta padrões maliciosos
+- **Suspicious Payload**: Detecta padrÃµes maliciosos
 
-### Relatórios
-- Relatórios em JSON
-- Relatórios em HTML
-- Estatísticas completas
+### RelatÃ³rios
+- RelatÃ³rios em JSON
+- RelatÃ³rios em HTML
+- EstatÃ­sticas completas
 - Timeline de eventos
 
-## Instalação
+## InstalaÃ§Ã£o
 
 ```bash
-# Clone o repositório
+# Clone o repositÃ³rio
 git clone https://github.com/eduardofontana/sentinel.git
 cd sentinelfw
 
@@ -92,16 +104,16 @@ source venv/bin/activate  # Linux/Mac
 # ou
 venv\Scripts\activate  # Windows
 
-# Instale as dependências
+# Instale as dependÃªncias
 pip install -r requirements.txt
 
-# Linux: pode precisar de privilégios de root para captura de pacotes
+# Linux: pode precisar de privilÃ©gios de root para captura de pacotes
 sudo setcap cap_net_raw,cap_net_admin=eip $(which python)
 ```
 
-## Configuração
+## ConfiguraÃ§Ã£o
 
-Edite `config/settings.yaml` para ajustar as configurações:
+Edite `config/settings.yaml` para ajustar as configuraÃ§Ãµes:
 
 ```yaml
 interface: "eth0"
@@ -141,7 +153,7 @@ python run.py show-rules --ids
 python run.py show-rules --firewall --ids
 ```
 
-### Gerar Relatório
+### Gerar RelatÃ³rio
 
 ```bash
 python run.py report --format json
@@ -182,38 +194,39 @@ alert tcp any any -> any 80 (msg:"HTTP XSS Script Tag"; content:"<script>"; noca
 ## Roadmap
 
 - [x] Capture de pacotes com Scapy
-- [x] Motor de firewall básico
+- [x] Motor de firewall bÃ¡sico
 - [x] Parser de regras IDS
 - [x] Detectores de anomalias
 - [x] Logging estruturado
-- [x] Relatórios JSON/HTML
-- [ ] Interface gráfica (TBD)
+- [x] RelatÃ³rios JSON/HTML
+- [ ] Interface grÃ¡fica (TBD)
 - [ ] Suporte a mais protocolos
-- [ ] Integração com bancos de dados
+- [ ] IntegraÃ§Ã£o com bancos de dados
 - [ ] Alertas em tempo real (TBD)
 
 ## Aviso Legal
 
-**IMPORTANTE**: Esta ferramenta é destinada exclusivamente para:
+**IMPORTANTE**: Esta ferramenta Ã© destinada exclusivamente para:
 
 - Fins educativos e de aprendizado
-- Uso em laboratórios de segurança
-- Testes autorizados em redes próprias
-- Proteção de redes domésticas
+- Uso em laboratÃ³rios de seguranÃ§a
+- Testes autorizados em redes prÃ³prias
+- ProteÃ§Ã£o de redes domÃ©sticas
 
 **PROIBIDO**:
-- Uso em redes sem autorização
-- Violação de privacidade de outros
+- Uso em redes sem autorizaÃ§Ã£o
+- ViolaÃ§Ã£o de privacidade de outros
 - Ataques offensivos
 - Atividades ilegais
 
-O usuário é o único responsável pelo uso adequado desta ferramenta.
-Não nos responsabilizamos por qualquer uso indevido ou ilegal.
+O usuÃ¡rio Ã© o Ãºnico responsÃ¡vel pelo uso adequado desta ferramenta.
+NÃ£o nos responsabilizamos por qualquer uso indevido ou ilegal.
 
 ---
 
-**Autor**: Eduardo Fontana — Web Developer & Pentester
+**Autor**: Eduardo Fontana â€” Web Developer & Pentester
 
 **GitHub**: [github.com/eduardofontana/sentinel](https://github.com/eduardofontana/sentinel)
 
-Licença MIT - Sinta-se livre para usar e contribuir!
+LicenÃ§a MIT - Sinta-se livre para usar e contribuir!
+
