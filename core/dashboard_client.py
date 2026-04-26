@@ -12,10 +12,12 @@ class DashboardClient:
         enabled: bool = True,
         queue_size: int = 2000,
         timeout_seconds: float = 1.0,
+        token: str = "",
     ):
         self.base_url = base_url.rstrip("/")
         self.enabled = enabled
         self.timeout_seconds = timeout_seconds
+        self.token = token
         self._queue: queue.Queue[tuple[str, Dict[str, Any]]] = queue.Queue(maxsize=queue_size)
         self._running = enabled
         self._worker: Optional[threading.Thread] = None
@@ -40,7 +42,10 @@ class DashboardClient:
         req = request.Request(
             f"{self.base_url}{endpoint}",
             data=data,
-            headers={"Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                **({"X-SentinelFW-Token": self.token} if self.token else {}),
+            },
             method="POST",
         )
         try:

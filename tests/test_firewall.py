@@ -147,3 +147,38 @@ class TestFirewallEngine:
         )
         action = engine.check_packet(packet)
         assert action == Action.DENY
+
+    def test_cidr_source_rule_matches_home_network(self):
+        rules = [
+            FirewallRule(
+                id="home_http",
+                action=Action.DENY,
+                protocol=Protocol.TCP,
+                source_ip="192.168.1.0/24",
+                source_port="any",
+                destination_ip="any",
+                destination_port="80",
+                description="Block local HTTP",
+                enabled=True,
+            ),
+        ]
+        engine = FirewallEngine(rules, "allow")
+        packet = PacketInfo(
+            timestamp=datetime.now(),
+            source_ip="192.168.1.44",
+            source_port=50000,
+            destination_ip="8.8.8.8",
+            destination_port=80,
+            protocol="tcp",
+            size=100,
+        )
+
+        assert engine.check_packet(packet) == Action.DENY
+
+    def test_observe_mode_does_not_drop_packets(self):
+        engine = FirewallEngine([], "deny", mode="observe")
+        assert engine.should_drop_packets() is False
+
+    def test_enforce_mode_drops_packets_in_pipeline(self):
+        engine = FirewallEngine([], "deny", mode="enforce")
+        assert engine.should_drop_packets() is True

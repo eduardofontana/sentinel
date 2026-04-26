@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Any
 from enum import Enum
 from datetime import datetime
+import ipaddress
 
 
 class Protocol(Enum):
@@ -24,6 +25,39 @@ class Action(Enum):
     ALERT = "alert"
     LOG = "log"
     PASS = "pass"
+
+
+HOME_NETWORKS = [
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+    ipaddress.ip_network("127.0.0.0/8"),
+    ipaddress.ip_network("169.254.0.0/16"),
+]
+
+
+def _matches_ip_rule(rule_ip: str, packet_ip: str) -> bool:
+    normalized = str(rule_ip).strip()
+    lowered = normalized.lower()
+    if lowered == "any":
+        return True
+
+    try:
+        ip = ipaddress.ip_address(packet_ip)
+    except ValueError:
+        return False
+
+    if normalized == "$HOME_NET":
+        return any(ip in network for network in HOME_NETWORKS)
+    if normalized == "$EXTERNAL_NET":
+        return not any(ip in network for network in HOME_NETWORKS)
+
+    try:
+        if "/" in normalized:
+            return ip in ipaddress.ip_network(normalized, strict=False)
+        return ip == ipaddress.ip_address(normalized)
+    except ValueError:
+        return False
 
 
 @dataclass
@@ -68,10 +102,10 @@ class FirewallRule:
         if self.protocol != Protocol.ANY and self.protocol.value != packet.protocol.lower():
             return False
 
-        if self.source_ip != "any" and self.source_ip != packet.source_ip:
+        if not _matches_ip_rule(self.source_ip, packet.source_ip):
             return False
 
-        if self.destination_ip != "any" and self.destination_ip != packet.destination_ip:
+        if not _matches_ip_rule(self.destination_ip, packet.destination_ip):
             return False
 
         if self.source_port != "any":
@@ -149,9 +183,9 @@ class IDSRule:
         dst_ip: str,
         dst_port: int,
     ) -> bool:
-        if self.source_ip != "any" and self.source_ip != src_ip:
+        if not _matches_ip_rule(self.source_ip, src_ip):
             return False
-        if self.destination_ip != "any" and self.destination_ip != dst_ip:
+        if not _matches_ip_rule(self.destination_ip, dst_ip):
             return False
         if not self._matches_port(self.source_port, src_port):
             return False

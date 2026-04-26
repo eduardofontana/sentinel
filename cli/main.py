@@ -16,7 +16,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.panel import Panel
 
 from core.packet_model import PacketInfo, Severity
-from core.firewall import FirewallEngine
+from core.firewall import FirewallEngine, WindowsFirewallBlocker
 from core.ids_engine import IDSEngine
 from core.sniffer import PacketSniffer
 from core.rule_parser import RuleParser
@@ -57,8 +57,18 @@ def load_config() -> dict:
             "log_level": "INFO",
             "packet_limit": 0,
             "ids": {"enabled": True, "rules_file": IDS_HOME_RULES_FILE},
-            "firewall": {"enabled": True, "rules_file": FIREWALL_RULES_FILE},
-            "dashboard": {"enabled": True, "url": "http://127.0.0.1:8000", "stats_interval_seconds": 1.0},
+            "firewall": {
+                "enabled": True,
+                "rules_file": FIREWALL_RULES_FILE,
+                "mode": "observe",
+                "enforce_system_block": False,
+            },
+            "dashboard": {
+                "enabled": True,
+                "url": "http://127.0.0.1:8000",
+                "stats_interval_seconds": 1.0,
+                "token": "",
+            },
             "detectors": {
                 "port_scan": {"enabled": True, "time_window_seconds": 10, "unique_ports_threshold": 20},
                 "brute_force": {"enabled": True, "time_window_seconds": 60, "attempts_threshold": 10},
@@ -74,9 +84,12 @@ def load_config() -> dict:
 
 
 def get_firewall() -> FirewallEngine:
-    rules = RuleParser.parse_firewall_rules(loaded_config.get("firewall", {}).get("rules_file", FIREWALL_RULES_FILE))
+    firewall_config = loaded_config.get("firewall", {})
+    rules = RuleParser.parse_firewall_rules(firewall_config.get("rules_file", FIREWALL_RULES_FILE))
     default_policy = loaded_config.get("default_policy", "allow")
-    return FirewallEngine(rules, default_policy)
+    mode = firewall_config.get("mode", "observe")
+    blocker = WindowsFirewallBlocker() if firewall_config.get("enforce_system_block", False) else None
+    return FirewallEngine(rules, default_policy, mode=mode, blocker=blocker)
 
 
 def get_ids_engine(rules_file: Optional[str] = None) -> IDSEngine:
@@ -335,6 +348,9 @@ def monitor(
     ids_engine = get_ids_engine(ids_file)
 
     console.print(f"[cyan]Regras de firewall carregadas:[/cyan] {len(firewall_engine.get_rules())}")
+    console.print(f"[cyan]Modo firewall:[/cyan] {firewall_engine.mode}")
+    if firewall_engine.mode == "observe":
+        console.print("[yellow]Modo observe: pacotes negados geram log/alerta, mas nao sao bloqueados no sistema.[/yellow]")
     console.print(f"[cyan]Regras IDS carregadas:[/cyan] {len(ids_engine.get_rules())}")
 
     port_scan_detector = None
@@ -380,6 +396,7 @@ def monitor(
     dashboard_client = DashboardClient(
         base_url=dashboard_cfg.get("url", "http://127.0.0.1:8000"),
         enabled=dashboard_cfg.get("enabled", True),
+        token=dashboard_cfg.get("token", ""),
     )
     stats_interval = float(dashboard_cfg.get("stats_interval_seconds", 1.0))
     logger = AsyncSentinelLogger(
@@ -496,6 +513,8 @@ def monitor(
             sniffer.stop()
         console.print(f"\n\n[red]Erro:[/red] {str(e)}")
     finally:
+        if firewall_engine.mode == "enforce" and firewall_engine.blocker:
+            firewall_engine.rollback_system_blocks()
         logger.shutdown()
         dashboard_client.shutdown()
         state_store.close()
@@ -774,7 +793,7 @@ def demo_attack(
 @app.command()
 def start_dashboard(
     port: int = typer.Option(8000, help="Dashboard port"),
-    host: str = typer.Option("0.0.0.0", help="Dashboard host"),
+    host: str = typer.Option("127.0.0.1", help="Dashboard host"),
     auto_monitor: bool = typer.Option(True, help="Subir monitor em background automaticamente"),
     monitor_interface: Optional[str] = typer.Option(None, help="Interface do monitor auto"),
     monitor_rules: Optional[str] = typer.Option(None, help="Arquivo de regras IDS para monitor auto"),
@@ -790,6 +809,11 @@ def start_dashboard(
         console.print("[red]Erro: FastAPI e Uvicorn nao instalados[/red]")
         console.print("[cyan]Instale com: pip install fastapi uvicorn[/cyan]")
         raise typer.Exit(1)
+
+    config = load_config()
+    dashboard_token = config.get("dashboard", {}).get("token", "")
+    if dashboard_token:
+        os.environ["SENTINELFW_DASHBOARD_TOKEN"] = dashboard_token
 
     from dashboard import app as fastapi_app
 
@@ -890,6 +914,37 @@ def stop_dashboard():
     console.print("[yellow]Para encerrar o dashboard:[/yellow]")
     console.print("  - Pressione Ctrl+C no terminal onde ele esta rodando")
     console.print("  - Ou mate o processo: taskkill /PID <pid> /F")
+
+
+@app.command("rollback-system-blocks")
+def rollback_system_blocks():
+    from cli.banner import print_banner
+    print_banner()
+
+    if os.name != "nt":
+        console.print("[yellow]Rollback automatico de bloqueios do sistema esta implementado apenas para Windows.[/yellow]")
+        return
+
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-Command",
+            (
+                "Get-NetFirewallRule -DisplayName 'SentinelFW AutoBlock *' "
+                "| Remove-NetFirewallRule"
+            ),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode == 0:
+        console.print("[green]Regras SentinelFW AutoBlock removidas.[/green]")
+    else:
+        console.print("[red]Falha ao remover regras. Execute com privilegios administrativos.[/red]")
+        if result.stderr:
+            console.print(result.stderr.strip())
 
 
 @app.command()

@@ -1,17 +1,74 @@
+import os
+import subprocess
 from typing import List, Optional, Callable
 from core.packet_model import PacketInfo, FirewallRule, Action
 from core.rule_parser import RuleParser
 
 
+class WindowsFirewallBlocker:
+    def __init__(self, rule_prefix: str = "SentinelFW AutoBlock"):
+        self.rule_prefix = rule_prefix
+        self._blocked_ips: set[str] = set()
+
+    def block_ip(self, ip_address: str) -> bool:
+        if os.name != "nt" or not ip_address or ip_address in self._blocked_ips:
+            return False
+
+        rule_name = f"{self.rule_prefix} {ip_address}"
+        result = subprocess.run(
+            [
+                "netsh",
+                "advfirewall",
+                "firewall",
+                "add",
+                "rule",
+                f"name={rule_name}",
+                "dir=in",
+                "action=block",
+                f"remoteip={ip_address}",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            self._blocked_ips.add(ip_address)
+            return True
+        return False
+
+    def rollback(self) -> None:
+        if os.name != "nt":
+            return
+        for ip_address in list(self._blocked_ips):
+            rule_name = f"{self.rule_prefix} {ip_address}"
+            subprocess.run(
+                ["netsh", "advfirewall", "firewall", "delete", "rule", f"name={rule_name}"],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self._blocked_ips.discard(ip_address)
+
+
 class FirewallEngine:
-    def __init__(self, rules: Optional[List[FirewallRule]] = None, default_policy: str = "allow", rules_file: str = ""):
+    def __init__(
+        self,
+        rules: Optional[List[FirewallRule]] = None,
+        default_policy: str = "allow",
+        rules_file: str = "",
+        mode: str = "observe",
+        blocker: Optional[WindowsFirewallBlocker] = None,
+    ):
         self.rules = rules or []
         self.default_policy = Action(default_policy.lower())
         self.rules_file = rules_file
+        self.mode = mode if mode in {"observe", "enforce"} else "observe"
+        self.blocker = blocker
         self.stats = {
             "allowed": 0,
             "denied": 0,
             "total": 0,
+            "system_blocks": 0,
         }
         self._reload_callbacks: list[Callable] = []
         self._rule_index: dict[tuple[str, str], list[FirewallRule]] = {}
@@ -67,16 +124,31 @@ class FirewallEngine:
             if rule.matches(packet):
                 if rule.action == Action.DENY:
                     self.stats["denied"] += 1
+                    self._system_block(packet)
                 else:
                     self.stats["allowed"] += 1
                 return rule.action
 
         if self.default_policy == Action.DENY:
             self.stats["denied"] += 1
+            self._system_block(packet)
         else:
             self.stats["allowed"] += 1
 
         return self.default_policy
+
+    def should_drop_packets(self) -> bool:
+        return self.mode == "enforce"
+
+    def _system_block(self, packet: PacketInfo) -> None:
+        if self.mode != "enforce" or not self.blocker:
+            return
+        if self.blocker.block_ip(packet.source_ip):
+            self.stats["system_blocks"] += 1
+
+    def rollback_system_blocks(self) -> None:
+        if self.blocker:
+            self.blocker.rollback()
 
     def get_stats(self) -> dict:
         return self.stats.copy()

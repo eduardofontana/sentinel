@@ -102,10 +102,10 @@ class ProtocolAnalyzer:
     }
 
     def __init__(self):
-        self.http_patterns = self._compile_patterns("sql_injection")
-        self.http_patterns += self._compile_patterns("xss")
-        self.http_patterns += self._compile_patterns("path_traversal")
-        self.http_patterns += self._compile_patterns("command_injection")
+        self.http_patterns_by_category = {
+            category: self._compile_patterns(category)
+            for category in self.SUSPICIOUS_PATTERNS
+        }
 
     def _compile_patterns(self, category: str) -> List[re.Pattern]:
         return [
@@ -192,17 +192,17 @@ class ProtocolAnalyzer:
 
         combined_lower = combined.lower()
 
-        for pattern in self.http_patterns:
-            if pattern.search(combined_lower):
-                if any(p in self.SUSPICIOUS_PATTERNS["sql_injection"] for p in [r"' OR '1'='1", r"UNION ALL SELECT"]):
-                    analysis.is_sql_injection = True
-                elif any(p in self.SUSPICIOUS_PATTERNS["xss"] for p in [r"<script", r"javascript:"]):
-                    analysis.is_xss = True
-                elif any(p in self.SUSPICIOUS_PATTERNS["path_traversal"] for p in [r"\.\./", r"\.\.\\"]):
-                    analysis.is_path_traversal = True
-                elif any(p in self.SUSPICIOUS_PATTERNS["command_injection"] for p in [r"\|", r"`"]):
-                    analysis.is_command_injection = True
-                break
+        for category, patterns in self.http_patterns_by_category.items():
+            if not any(pattern.search(combined_lower) for pattern in patterns):
+                continue
+            if category == "sql_injection":
+                analysis.is_sql_injection = True
+            elif category == "xss":
+                analysis.is_xss = True
+            elif category == "path_traversal":
+                analysis.is_path_traversal = True
+            elif category == "command_injection":
+                analysis.is_command_injection = True
 
     def analyze_dns(self, packet) -> Optional[DNSAnalysis]:
         return DNSAnalysis(

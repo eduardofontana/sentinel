@@ -4,6 +4,14 @@ from collections import defaultdict
 from core.packet_model import Alert, Severity
 
 
+SEVERITY_WEIGHT = {
+    Severity.LOW: 1,
+    Severity.MEDIUM: 2,
+    Severity.HIGH: 3,
+    Severity.CRITICAL: 4,
+}
+
+
 class AlertRateLimiter:
     def __init__(
         self,
@@ -101,7 +109,7 @@ class AlertGrouping:
                     "count": len(recent),
                     "first_seen": min(a.timestamp for a in recent),
                     "last_seen": max(a.timestamp for a in recent),
-                    "severity": max(a.severity for a in recent),
+                    "severity": max(recent, key=lambda a: SEVERITY_WEIGHT.get(a.severity, 0)).severity,
                     "sample_message": recent[0].message[:50],
                 })
 

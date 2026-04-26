@@ -227,3 +227,33 @@ class TestIDSEngine:
 
         alerts = engine.check_packet(reverse_packet)
         assert len(alerts) == 1
+
+    def test_home_net_and_external_net_variables_match_private_to_public_flow(self):
+        rules = [
+            IDSRule(
+                action=Action.ALERT,
+                protocol=Protocol.TCP,
+                source_ip="$HOME_NET",
+                source_port="any",
+                direction="->",
+                destination_ip="$EXTERNAL_NET",
+                destination_port=443,
+                msg="Outbound home traffic",
+                sid=1000006,
+                rev=1,
+                severity=Severity.LOW,
+            ),
+        ]
+        engine = IDSEngine(rules)
+        packet = PacketInfo(
+            timestamp=datetime.now(),
+            source_ip="192.168.1.22",
+            source_port=51000,
+            destination_ip="8.8.8.8",
+            destination_port=443,
+            protocol="tcp",
+            payload=b"",
+            size=60,
+        )
+
+        assert len(engine.check_packet(packet)) == 1

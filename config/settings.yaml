@@ -16,8 +16,11 @@ detectors:
 dashboard:
   enabled: true
   stats_interval_seconds: 1.0
+  token: ''
   url: http://127.0.0.1:8000
 firewall:
+  enforce_system_block: false
+  mode: observe
   enabled: true
   rules_file: config/firewall_rules.yaml
 ids:

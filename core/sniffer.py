@@ -104,7 +104,9 @@ class PacketSniffer:
                     packet_info, "denied", "N/A", "Packet blocked by firewall"
                 )
                 self.logger.log_packet(packet_info, "denied")
-                return
+                if self.firewall.should_drop_packets():
+                    return
+                self.stats["packets_allowed"] += 1
             else:
                 self.stats["packets_allowed"] += 1
 
