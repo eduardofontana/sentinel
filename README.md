@@ -123,10 +123,10 @@ curl http://127.0.0.1:8000/api/stats
 
 ### Alias `python` quebrado no Windows
 
-Se o alias do WindowsApps falhar, execute com caminho completo:
+Se o alias do WindowsApps falhar, execute com `py`:
 
 ```powershell
-& "C:\Users\duhbolado\AppData\Local\Python\pythoncore-3.14-64\python.exe" run.py start-dashboard --host 127.0.0.1 --port 8000 --auto-monitor
+py run.py start-dashboard --host 127.0.0.1 --port 8000 --auto-monitor
 ```
 
 ## Testes
