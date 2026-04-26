@@ -83,7 +83,7 @@ Este projeto foi desenvolvido para:
 
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/sentinelfw.git
+git clone https://github.com/eduardofontana/sentinel.git
 cd sentinelfw
 
 # Crie um ambiente virtual (opcional)
@@ -214,6 +214,6 @@ Não nos responsabilizamos por qualquer uso indevido ou ilegal.
 
 **Autor**: Eduardo Fontana — Web Developer & Pentester
 
-**GitHub**: [github.com/seu-usuario/sentinelfw](https://github.com/seu-usuario/sentinelfw)
+**GitHub**: [github.com/eduardofontana/sentinel](https://github.com/eduardofontana/sentinel)
 
 Licença MIT - Sinta-se livre para usar e contribuir!
