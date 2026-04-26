@@ -1,0 +1,100 @@
+rules:
+  - id: fw_1
+    action: deny
+    protocol: tcp
+    source_ip: any
+    source_port: any
+    destination_ip: any
+    destination_port: 23
+    description: "Block Telnet"
+    enabled: true
+
+  - id: fw_2
+    action: deny
+    protocol: tcp
+    source_ip: any
+    source_port: any
+    destination_ip: any
+    destination_port: 135
+    description: "Block Windows RPC"
+    enabled: true
+
+  - id: fw_3
+    action: deny
+    protocol: tcp
+    source_ip: any
+    source_port: any
+    destination_ip: any
+    destination_port: 139
+    description: "Block NetBIOS"
+    enabled: true
+
+  - id: fw_4
+    action: deny
+    protocol: udp
+    source_ip: any
+    source_port: any
+    destination_ip: any
+    destination_port: 137
+    description: "Block NetBIOS Name Service"
+    enabled: true
+
+  - id: fw_5
+    action: deny
+    protocol: udp
+    source_ip: any
+    source_port: any
+    destination_ip: any
+    destination_port: 138
+    description: "Block NetBIOS Datagram"
+    enabled: true
+
+  - id: fw_6
+    action: deny
+    protocol: tcp
+    source_ip: any
+    source_port: any
+    destination_ip: any
+    destination_port: 445
+    description: "Block SMB"
+    enabled: true
+
+  - id: fw_7
+    action: allow
+    protocol: tcp
+    source_ip: any
+    source_port: any
+    destination_ip: any
+    destination_port: 80
+    description: "Allow HTTP"
+    enabled: true
+
+  - id: fw_8
+    action: allow
+    protocol: tcp
+    source_ip: any
+    source_port: any
+    destination_ip: any
+    destination_port: 443
+    description: "Allow HTTPS"
+    enabled: true
+
+  - id: fw_9
+    action: allow
+    protocol: tcp
+    source_ip: any
+    source_port: any
+    destination_ip: any
+    destination_port: 22
+    description: "Allow SSH"
+    enabled: true
+
+  - id: fw_10
+    action: allow
+    protocol: udp
+    source_ip: any
+    source_port: 53
+    destination_ip: any
+    destination_port: any
+    description: "Allow DNS Responses"
+    enabled: true

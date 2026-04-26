@@ -1,0 +1,21 @@
+default_policy: allow
+detectors:
+  brute_force:
+    attempts_threshold: 10
+    enabled: true
+    time_window_seconds: 60
+  dos:
+    enabled: true
+    packet_threshold: 200
+    time_window_seconds: 5
+  port_scan:
+    enabled: true
+firewall:
+  enabled: true
+  rules_file: config/firewall_rules.yaml
+ids:
+  enabled: true
+  rules_file: rules/ids.rules
+interface: eth0
+log_level: INFO
+packet_limit: 0
